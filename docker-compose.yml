@@ -1,0 +1,38 @@
+networks:
+  booking-network:
+    external: true
+
+services:
+  postgresql-db-notification:
+    image: postgres:latest
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - postgresql-db-notification:/var/lib/postgresql/data
+    networks:
+      - booking-network
+
+  notification-service:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql-db-notification:5432/notification_db
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    ports:
+      - "8085:8085"
+    depends_on:
+      - postgresql-db-notification
+    restart: on-failure
+    volumes:
+      - uploads-data:/app/uploads
+    networks:
+      - booking-network
+
+volumes:
+  postgresql-db-notification:
+  uploads-data:
