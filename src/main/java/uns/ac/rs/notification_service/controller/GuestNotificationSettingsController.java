@@ -44,4 +44,12 @@ public class GuestNotificationSettingsController {
                 .updateMyGuestNotificationSettings(updateGuestNotificationSettingsRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
     }
+
+    @GetMapping("/has-enabled-notifications")
+    public ResponseEntity<?> isGuestHasEnabledNotifications(
+                             @RequestHeader("Authorization") String authorizationHeader) {
+        String jwtToken = authorizationHeader.replace("Bearer ", "");
+        boolean result = guestNotificationSettingsService.isGuestHasEnabledNotifications(jwtToken);
+        return ResponseEntity.ok(result);
+    }
 }

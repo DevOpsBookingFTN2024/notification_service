@@ -82,4 +82,19 @@ public class GuestNotificationSettingsService {
 
         return new MessageResponse("Guest notification settings updated successfully.");
     }
+
+    public boolean isGuestHasEnabledNotifications(String jwtToken) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_GUEST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        GuestNotificationSettings guestNotificationSettings = guestNotificationSettingsRepository
+                .findByGuest(userDetails.getUsername());
+
+        return guestNotificationSettings != null;
+    }
 }
