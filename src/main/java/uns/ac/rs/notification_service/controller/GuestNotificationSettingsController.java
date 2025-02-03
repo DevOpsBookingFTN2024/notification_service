@@ -17,12 +17,10 @@ public class GuestNotificationSettingsController {
     GuestNotificationSettingsService guestNotificationSettingsService;
 
     //endpoint koristi UserService
-    @PostMapping("/create")
-    public ResponseEntity<?> createGuestNotificationSettings(
-            @RequestHeader("Authorization") String authorizationHeader) {
-        String jwtToken = authorizationHeader.replace("Bearer ", "");
+    @PostMapping("/create/{guest}")
+    public ResponseEntity<?> createGuestNotificationSettings(@PathVariable String guest) {
         MessageResponse messageResponse = guestNotificationSettingsService
-                .createGuestNotificationSettings(jwtToken);
+                .createGuestNotificationSettings(guest);
         return ResponseEntity.ok(messageResponse);
     }
 
@@ -43,13 +41,5 @@ public class GuestNotificationSettingsController {
         MessageResponse messageResponse = guestNotificationSettingsService
                 .updateMyGuestNotificationSettings(updateGuestNotificationSettingsRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
-    }
-
-    @GetMapping("/has-enabled-notifications")
-    public ResponseEntity<?> isGuestHasEnabledNotifications(
-                             @RequestHeader("Authorization") String authorizationHeader) {
-        String jwtToken = authorizationHeader.replace("Bearer ", "");
-        boolean result = guestNotificationSettingsService.isGuestHasEnabledNotifications(jwtToken);
-        return ResponseEntity.ok(result);
     }
 }

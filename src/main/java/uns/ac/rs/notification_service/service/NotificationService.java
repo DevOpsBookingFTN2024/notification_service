@@ -77,6 +77,22 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
+    public List<NotificationDTO> getAllMyUnreadNotifications(String jwtToken) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_GUEST") && !userDetails.getRoles().contains("ROLE_HOST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        return notificationRepository.findByRecipient(userDetails.getUsername())
+                .stream()
+                .filter(notification -> !notification.getIsRead())
+                .map(NotificationMapper::toNotificationDTO)
+                .collect(Collectors.toList());
+    }
+
     public MessageResponse readNotification(String id, String jwtToken) {
         UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
         if (userDetails == null) {

@@ -23,18 +23,10 @@ public class GuestNotificationSettingsService {
     }
 
     //metodu koristi UserService
-    public MessageResponse createGuestNotificationSettings(String jwtToken) {
-        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
-        if (userDetails == null) {
-            throw new IllegalStateException("User details could not be retrieved.");
-        }
-        if (!userDetails.getRoles().contains("ROLE_GUEST")) {
-            throw new SecurityException("User do not have permission for this action.");
-        }
-
-        if (!guestNotificationSettingsRepository.existsByGuest(userDetails.getUsername())) {
+    public MessageResponse createGuestNotificationSettings(String guest) {
+        if (!guestNotificationSettingsRepository.existsByGuest(guest)) {
             GuestNotificationSettings newGuestNotificationSettings = new GuestNotificationSettings(
-                    userDetails.getUsername(),
+                    guest,
                     true
             );
 
@@ -81,20 +73,5 @@ public class GuestNotificationSettingsService {
         guestNotificationSettingsRepository.save(guestNotificationSettings);
 
         return new MessageResponse("Guest notification settings updated successfully.");
-    }
-
-    public boolean isGuestHasEnabledNotifications(String jwtToken) {
-        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
-        if (userDetails == null) {
-            throw new IllegalStateException("User details could not be retrieved.");
-        }
-        if (!userDetails.getRoles().contains("ROLE_GUEST")) {
-            throw new SecurityException("User do not have permission for this action.");
-        }
-
-        GuestNotificationSettings guestNotificationSettings = guestNotificationSettingsRepository
-                .findByGuest(userDetails.getUsername());
-
-        return guestNotificationSettings != null;
     }
 }
