@@ -34,6 +34,13 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
+    @GetMapping("/unread")
+    public ResponseEntity<?> getAllMyUnreadNotifications(@RequestHeader("Authorization") String authorizationHeader) {
+        String jwtToken = authorizationHeader.replace("Bearer ", "");
+        List<NotificationDTO> notifications = notificationService.getAllMyUnreadNotifications(jwtToken);
+        return ResponseEntity.ok(notifications);
+    }
+
     @PutMapping("/read/{notificationId}")
     public ResponseEntity<?> readNotification(@PathVariable String notificationId,
                                               @RequestHeader("Authorization") String authorizationHeader) {

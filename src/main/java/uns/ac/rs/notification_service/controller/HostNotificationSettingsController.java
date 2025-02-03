@@ -17,12 +17,10 @@ public class HostNotificationSettingsController {
     HostNotificationSettingsService hostNotificationSettingsService;
 
     //endpoint koristi UserService
-    @PostMapping("/create")
-    public ResponseEntity<?> createHostNotificationSettings(
-            @RequestHeader("Authorization") String authorizationHeader) {
-        String jwtToken = authorizationHeader.replace("Bearer ", "");
+    @PostMapping("/create/{host}")
+    public ResponseEntity<?> createHostNotificationSettings(@PathVariable String host) {
         MessageResponse messageResponse = hostNotificationSettingsService
-                .createHostNotificationSettings(jwtToken);
+                .createHostNotificationSettings(host);
         return ResponseEntity.ok(messageResponse);
     }
 
@@ -42,13 +40,5 @@ public class HostNotificationSettingsController {
         MessageResponse messageResponse = hostNotificationSettingsService
                 .updateMyHostNotificationSettings(updateHostNotificationSettingsRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
-    }
-
-    @GetMapping("/has-enabled-notifications")
-    public ResponseEntity<?> isHostHasEnabledNotifications(
-            @RequestHeader("Authorization") String authorizationHeader) {
-        String jwtToken = authorizationHeader.replace("Bearer ", "");
-        boolean result = hostNotificationSettingsService.isHostHasEnabledNotifications(jwtToken);
-        return ResponseEntity.ok(result);
     }
 }
