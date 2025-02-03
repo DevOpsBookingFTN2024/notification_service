@@ -43,4 +43,12 @@ public class HostNotificationSettingsController {
                 .updateMyHostNotificationSettings(updateHostNotificationSettingsRequest, jwtToken);
         return ResponseEntity.ok(messageResponse);
     }
+
+    @GetMapping("/has-enabled-notifications")
+    public ResponseEntity<?> isHostHasEnabledNotifications(
+            @RequestHeader("Authorization") String authorizationHeader) {
+        String jwtToken = authorizationHeader.replace("Bearer ", "");
+        boolean result = hostNotificationSettingsService.isHostHasEnabledNotifications(jwtToken);
+        return ResponseEntity.ok(result);
+    }
 }

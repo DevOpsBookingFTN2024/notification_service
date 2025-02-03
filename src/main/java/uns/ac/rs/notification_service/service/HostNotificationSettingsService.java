@@ -6,6 +6,7 @@ import uns.ac.rs.notification_service.dto.client.UserDTO;
 import uns.ac.rs.notification_service.dto.request.UpdateHostNotificationSettingsRequest;
 import uns.ac.rs.notification_service.dto.response.MessageResponse;
 import uns.ac.rs.notification_service.mapper.HostNotificationSettingsMapper;
+import uns.ac.rs.notification_service.model.GuestNotificationSettings;
 import uns.ac.rs.notification_service.model.HostNotificationSettings;
 import uns.ac.rs.notification_service.repository.HostNotificationSettingsRepository;
 import uns.ac.rs.notification_service.service.client.UserServiceClient;
@@ -90,5 +91,20 @@ public class HostNotificationSettingsService {
         hostNotificationSettingsRepository.save(hostNotificationSettings);
 
         return new MessageResponse("Host notification settings updated successfully.");
+    }
+
+    public boolean isHostHasEnabledNotifications(String jwtToken) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_HOST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        HostNotificationSettings hostNotificationSettings = hostNotificationSettingsRepository
+                .findByHost(userDetails.getUsername());
+
+        return hostNotificationSettings != null;
     }
 }
