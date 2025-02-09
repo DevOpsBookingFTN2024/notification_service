@@ -91,6 +91,27 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
+    public MessageResponse readAllMyUnreadNotifications(String jwtToken) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_GUEST") && !userDetails.getRoles().contains("ROLE_HOST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        List<Notification> unreadNotifications = notificationRepository.findByRecipient(userDetails.getUsername())
+                .stream()
+                .filter(notification -> !notification.getIsRead())
+                .toList();
+
+        unreadNotifications.forEach(notification -> notification.setIsRead(true));
+
+        notificationRepository.saveAll(unreadNotifications);
+
+        return new MessageResponse("Unread notifications have been successfully read.");
+    }
+
     public MessageResponse readNotification(String id, String jwtToken) {
         UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
         if (userDetails == null) {
@@ -215,29 +236,5 @@ public class NotificationService {
         notificationWebSocketService.sendNotification(newNotificationDTO);
 
         return new MessageResponse("Notification created successfully.");
-    }
-
-    public List<NotificationDTO> getAllMyUnreadNotificationsAndSetFlag( String jwtToken) {
-        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
-        if (userDetails == null) {
-            throw new IllegalStateException("User details could not be retrieved.");
-        }
-        if (!userDetails.getRoles().contains("ROLE_GUEST") && !userDetails.getRoles().contains("ROLE_HOST")) {
-            throw new SecurityException("User do not have permission for this action.");
-        }
-
-        List<Notification> notifications = notificationRepository.findByRecipient(userDetails.getUsername())
-                .stream()
-                .filter(notification -> !notification.getIsRead())
-                .peek(notification -> {
-                    notification.setIsRead(true);
-                    notificationRepository.save(notification);
-                })
-                .collect(Collectors.toList());
-
-        return notifications
-                .stream()
-                .map(NotificationMapper::toNotificationDTO)
-                .collect(Collectors.toList());
     }
 }
