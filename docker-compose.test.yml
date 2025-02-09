@@ -1,17 +1,13 @@
 services:
-  postgresql-db-notification:
-    image: postgres:latest
-    container_name: postgres-notification-test
+  mongodb-test:
+    image: mongo:latest
+    container_name: mongodb-test
     ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_DB: test_notification_db
-      POSTGRES_notification: postgres
-      POSTGRES_PASSWORD: admin
+      - "27017:27017"
     volumes:
-      - postgresql-db-notification-test:/var/lib/postgresql/data
+      - mongodb-test-data:/data/db
     healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
+      test: echo 'db.runCommand("ping").ok' | mongosh mongodb://localhost:27017/test_notification_db --quiet
       interval: 10s
       retries: 5
 
@@ -22,15 +18,14 @@ services:
       - .:/workspace
       - ${HOME}/.m2:/root/.m2
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-test:5432/test_notification_db
-      - SPRING_DATASOURCE_notificationNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=admin
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_DATA_MONGODB_URI=mongodb://mongodb-test:27017/test_notification_db
+      - SPRING_DATA_MONGODB_DATABASE=test_notification_db
     working_dir: /workspace
     depends_on:
-      - postgresql-db-notification
+      mongodb-test:
+        condition: service_healthy  # Ensures MongoDB is ready before starting tests
     command: |
-      chmod +x /workspace/wait-for-it.sh && ./wait-for-it.sh postgres-test:5432 -- mvn clean test
+      chmod +x /workspace/wait-for-it.sh && ./wait-for-it.sh mongodb-test:27017 -- mvn clean test
 
 volumes:
-  postgresql-db-notification-test:
+  mongodb-test-data:
