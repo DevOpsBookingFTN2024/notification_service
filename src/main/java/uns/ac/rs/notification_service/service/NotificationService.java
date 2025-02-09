@@ -16,9 +16,7 @@ import uns.ac.rs.notification_service.repository.NotificationRepository;
 import uns.ac.rs.notification_service.service.client.UserServiceClient;
 import uns.ac.rs.notification_service.service.socket.NotificationWebSocketService;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -217,5 +215,21 @@ public class NotificationService {
         notificationWebSocketService.sendNotification(newNotificationDTO);
 
         return new MessageResponse("Notification created successfully.");
+    }
+
+    public List<NotificationDTO> getNotificationsByIds(List<String> ids, String jwtToken) {
+        UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
+        if (userDetails == null) {
+            throw new IllegalStateException("User details could not be retrieved.");
+        }
+        if (!userDetails.getRoles().contains("ROLE_GUEST") && !userDetails.getRoles().contains("ROLE_HOST")) {
+            throw new SecurityException("User do not have permission for this action.");
+        }
+
+        List<Notification> notifications = notificationRepository.findAllById(ids);
+
+        return notifications.stream()
+                .map(NotificationMapper::toNotificationDTO)
+                .collect(Collectors.toList());
     }
 }
