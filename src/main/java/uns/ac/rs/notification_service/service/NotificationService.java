@@ -217,7 +217,7 @@ public class NotificationService {
         return new MessageResponse("Notification created successfully.");
     }
 
-    public List<NotificationDTO> getNotificationsByIds(List<String> ids, String jwtToken) {
+    public List<NotificationDTO> getAllMyUnreadNotificationsAndSetFlag( String jwtToken) {
         UserDTO userDetails = userServiceClient.getUserDetails(jwtToken);
         if (userDetails == null) {
             throw new IllegalStateException("User details could not be retrieved.");
@@ -226,9 +226,17 @@ public class NotificationService {
             throw new SecurityException("User do not have permission for this action.");
         }
 
-        List<Notification> notifications = notificationRepository.findAllById(ids);
+        List<Notification> notifications = notificationRepository.findByRecipient(userDetails.getUsername())
+                .stream()
+                .filter(notification -> !notification.getIsRead())
+                .peek(notification -> {
+                    notification.setIsRead(true);
+                    notificationRepository.save(notification);
+                })
+                .collect(Collectors.toList());
 
-        return notifications.stream()
+        return notifications
+                .stream()
                 .map(NotificationMapper::toNotificationDTO)
                 .collect(Collectors.toList());
     }
